@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DL Exam Prep</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js"></script>
+<style>
+:root {
+  --bg: #0d1117;
+  --bg2: #161b22;
+  --bg3: #21262d;
+  --border: #30363d;
+  --text: #e6edf3;
+  --text2: #8b949e;
+  --accent: #58a6ff;
+  --green: #3fb950;
+  --orange: #d29922;
+  --red: #f85149;
+  --width: 1200px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.6}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+button{cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text);padding:8px 16px;border-radius:6px;font-size:14px;transition:.2s}
+button:hover{background:var(--border);border-color:var(--accent)}
+button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+button.primary:hover{filter:brightness(1.1)}
+input{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;font-size:14px;width:100%}
+input:focus{outline:none;border-color:var(--accent)}
+
+/* Layout */
+#app{display:flex;height:100vh;overflow:hidden}
+#sidebar{width:320px;min-width:320px;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
+#main{flex:1;overflow-y:auto;padding:24px 32px}
+
+/* Header */
+#header{padding:16px;border-bottom:1px solid var(--border)}
+#header h1{font-size:18px;font-weight:600;color:var(--text)}
+#header span{font-size:12px;color:var(--text2)}
+
+/* Search */
+#search-wrap{padding:12px}
+
+/* Nav tree */
+#nav-tree{padding:0 12px 12px;flex:1;overflow-y:auto}
+.section{margin-bottom:8px}
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:6px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer}
+.section-header:hover{background:var(--bg3)}
+.section-header .count{font-size:11px;color:var(--text2)}
+.section-questions{display:none}
+.section-questions.open{display:block}
+.q-item{display:flex;align-items:center;padding:5px 10px 5px 20px;border-radius:6px;font-size:13px;cursor:pointer;gap:8px}
+.q-item:hover{background:var(--bg3)}
+.q-item.active{background:var(--bg3);color:var(--accent)}
+.q-item .status{width:8px;height:8px;border-radius:50%;min-width:8px}
+.q-item .status.learned{background:var(--green)}
+.q-item .status.review{background:var(--orange)}
+.q-item .status.unknown{background:var(--red)}
+.q-item .status.none{background:var(--border)}
+.q-item .num{color:var(--text2);min-width:24px;font-size:11px}
+
+/* Toolbar */
+#toolbar{display:flex;gap:6px;padding:12px;border-top:1px solid var(--border);flex-wrap:wrap}
+#toolbar button{font-size:12px;padding:6px 10px}
+
+/* Content */
+#question-view{max-width:820px;margin:0 auto}
+#question-view h2{margin:0 0 4px;font-size:24px}
+.q-meta{color:var(--text2);font-size:13px;margin-bottom:20px;display:flex;gap:16px;flex-wrap:wrap}
+.q-content{font-size:15px}
+.q-content h1{font-size:22px;margin:24px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.q-content h2{font-size:18px;margin:20px 0 10px}
+.q-content h3{font-size:16px;margin:16px 0 8px}
+.q-content p{margin:8px 0}
+.q-content ul,.q-content ol{margin:8px 0;padding-left:24px}
+.q-content li{margin:4px 0}
+.q-content code{background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:13px}
+.q-content pre{background:var(--bg3);padding:14px;border-radius:8px;overflow-x:auto;border:1px solid var(--border);margin:12px 0}
+.q-content pre code{background:none;padding:0}
+.q-content table{border-collapse:collapse;margin:12px 0;width:100%;font-size:14px}
+.q-content th,.q-content td{padding:8px 12px;border:1px solid var(--border);text-align:left}
+.q-content th{background:var(--bg3);font-weight:600}
+.q-content blockquote{border-left:3px solid var(--accent);padding:8px 16px;margin:12px 0;background:var(--bg3);border-radius:0 6px 6px 0}
+.q-content .katex-display{margin:12px 0;overflow-x:auto}
+.q-content .katex{font-size:1.05em}
+
+/* Flashcard mode */
+#flashcard-view{max-width:700px;margin:40px auto;text-align:center}
+.flashcard{background:var(--bg2);border:2px solid var(--border);border-radius:16px;padding:40px;min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:.3s}
+.flashcard:hover{border-color:var(--accent)}
+.flashcard .q-text{font-size:20px;margin-bottom:20px}
+.flashcard .a-text{font-size:16px;color:var(--text);display:none;max-height:400px;overflow-y:auto;width:100%;text-align:left;padding:16px;background:var(--bg3);border-radius:8px}
+.flashcard .a-text.show{display:block}
+.flashcard .hint{color:var(--text2);font-size:13px;margin-top:16px}
+.flash-progress{display:flex;gap:8px;justify-content:center;margin:20px 0}
+.flash-progress button{width:40px;height:40px;font-size:18px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.flash-progress button.green{background:var(--green);color:#000}
+.flash-progress button.orange{background:var(--orange)}
+.flash-progress button.red{background:var(--red)}
+
+/* Exam mode */
+#exam-view{max-width:700px;margin:40px auto}
+.exam-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.exam-timer{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.exam-question{background:var(--bg2);border-radius:12px;padding:24px;margin-bottom:16px}
+.exam-question .num{color:var(--accent);font-weight:600;margin-bottom:8px}
+.exam-question .q{font-size:16px}
+.exam-question .a{display:none;margin-top:12px;padding:16px;background:var(--bg3);border-radius:8px}
+.exam-results{padding:24px;text-align:center}
+.exam-results h2{font-size:28px;margin-bottom:12px}
+
+/* Related questions */
+.related-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px;padding-top:16px;border-top:1px solid var(--border)}
+.related-links a{padding:4px 12px;background:var(--bg3);border-radius:20px;font-size:13px;border:1px solid var(--border)}
+.related-links a:hover{background:var(--border)}
+
+/* Focus mode */
+body.focus .q-content .katex-display,.focus .q-content pre,.focus .q-content blockquote{display:none}
+
+/* Print */
+@media print{
+  #sidebar,#toolbar,.flash-progress,.related-links{display:none!important}
+  #app{display:block}
+  #main{overflow:visible;padding:0}
+  .q-content{font-size:12px}
+  body{background:#fff;color:#000}
+  .q-content table{page-break-inside:auto}
+}
+
+/* Progress bar */
+#progress-bar{height:3px;background:var(--bg3);margin:0 12px 8px;border-radius:2px}
+#progress-bar .fill{height:100%;background:var(--green);border-radius:2px;transition:width .3s}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:100}
+.modal{background:var(--bg2);border-radius:12px;padding:24px;max-width:400px;width:90%}
+.modal h3{margin-bottom:12px}
+.modal .btn-group{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+
+/* Responsive */
+@media(max-width:768px){
+  #sidebar{width:100%;min-width:0;max-height:50vh}
+  #app{flex-direction:column}
+  #main{padding:16px}
+}
+
+/* Loading */
+#loading{display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px;color:var(--text2)}
+
+/* Stats in sidebar */
+#stats{font-size:12px;color:var(--text2);padding:4px 12px 0}
+</style>
+</head>
+<body>
+<div id="loading">🦀 Loading...</div>
+<div id="app" style="display:none">
+  <div id="sidebar">
+    <div id="header"><h1>📘 DL Exam Prep</h1><span>62 questions</span></div>
+    <div id="search-wrap"><input id="search" type="text" placeholder="🔍 Search questions..."></div>
+    <div id="progress-bar"><div class="fill" id="progress-fill"></div></div>
+    <div id="stats"></div>
+    <div id="nav-tree"></div>
+    <div id="toolbar">
+      <button data-mode="flashcard">🎴 Flashcards</button>
+      <button data-mode="random">🎲 Random</button>
+      <button data-mode="exam">📝 Exam</button>
+      <button id="focus-btn">👁 Focus</button>
+      <button id="reset-btn">↺ Reset</button>
+    </div>
+  </div>
+  <div id="main"></div>
+</div>
+
+<script>
+// Load data
+fetch('data.json').then(r=>r.json()).then(data => {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  
+  const questions = data.questions;
+  const sections = data.sections;
+  
+  // Build wiki-link map
+  const qmap = {}; // id -> {title, content, related}
+  questions.forEach(q => { qmap[q.id] = q; });
+  
+  // Progress
+  let progress = JSON.parse(localStorage.getItem('dl_progress') || '{}');
+  function saveProgress() { localStorage.setItem('dl_progress', JSON.stringify(progress)); }
+  
+  // Resolve wiki links to html links
+  function resolveLinks(text) {
+    return text.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (match, target, display) => {
+      // Find matching question
+      target = target.trim();
+      for (const q of questions) {
+        if (q.title === target || `DL ${q.id} - ${q.title}` === target || target.includes(q.id)) {
+          return `<a href="#/q/${q.id}">${display || target}</a>`;
+        }
+      }
+      // Try partial match
+      for (const q of questions) {
+        if (target.includes(q.title) || q.title.includes(target) || target.includes(q.id)) {
+          return `<a href="#/q/${q.id}">${display || target}</a>`;
+        }
+      }
+      return display || target;
+    });
+  }
+  
+  // Process markdown with KaTeX
+  function renderContent(raw, focusMode) {
+    let html = resolveLinks(raw);
+    
+    // Block math $$...$$
+    html = html.replace(/\$\$([\s\S]*?)\$\$/g, (_, eq) => {
+      try {
+        return katex.renderToString(eq.trim(), { displayMode: true, throwOnError: false });
+      } catch(e) { return `<div class="katex-error">${escapeHtml(eq)}</div>`; }
+    });
+    
+    // Inline math $...$
+    html = html.replace(/(?<!\$)\$([^$\n]+?)\$(?!\$)/g, (_, eq) => {
+      try {
+        return katex.renderToString(eq.trim(), { throwOnError: false });
+      } catch(e) { return `$${escapeHtml(eq)}$`; }
+    });
+    
+    // Convert markdown (basic)
+    html = simpleMarkdown(html);
+    
+    return html;
+  }
+  
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  
+  function simpleMarkdown(text) {
+    // Code blocks
+    text = text.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+    // Inline code
+    text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+    // Bold
+    text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    // Italic
+    text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    // Headers
+    text = text.replace(/^###### (.*$)/gm, '<h6>$1</h6>');
+    text = text.replace(/^##### (.*$)/gm, '<h5>$1</h5>');
+    text = text.replace(/^#### (.*$)/gm, '<h4>$1</h4>');
+    text = text.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+    text = text.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+    text = text.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+    // Horizontal rule
+    text = text.replace(/^---$/gm, '<hr>');
+    // Blockquote
+    text = text.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
+    // Unordered lists
+    text = text.replace(/^- (.*$)/gm, '<li>$1</li>');
+    text = text.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+    // Ordered lists 
+    text = text.replace(/^\d+\.\s(.*$)/gm, '<li>$1</li>');
+    // Wrap consecutive li's in ol
+    text = text.replace(/(<li>.*<\/li>\n?)+/g, (m) => m.startsWith('<ul') ? m : '<ol>' + m + '</ol>');
+    // Tables (basic)
+    text = text.replace(/\|(.+)\|\n\|[-| ]+\|\n((?:\|.+\|\n?)*)/g, (_, header, rows) => {
+      let h = '<th>' + header.split('|').filter(Boolean).map(s=>s.trim()).join('</th><th>') + '</th>';
+      let r = '';
+      rows.trim().split('\n').forEach(row => {
+        r += '<tr><td>' + row.split('|').filter(Boolean).map(s=>s.trim()).join('</td><td>') + '</td></tr>';
+      });
+      return '<table><thead><tr>' + h + '</tr></thead><tbody>' + r + '</tbody></table>';
+    });
+    // Paragraphs
+    text = text.replace(/\n\n/g, '</p><p>');
+    text = '<p>' + text + '</p>';
+    // Clean up nested paragraphs around block elements
+    text = text.replace(/<p><(h[1-6]|ul|ol|li|pre|blockquote|table|hr)/g, '<$1');
+    text = text.replace(/<\/(h[1-6]|ul|ol|li|pre|blockquote|table|hr)><\/p>/g, '</$1>');
+    text = text.replace(/<p><\/p>/g, '');
+    
+    return text;
+  }
+  
+  // Update progress stats
+  function updateStats() {
+    const total = questions.length;
+    let learned = 0, review = 0, unknown = 0;
+    questions.forEach(q => {
+      const s = progress[q.id];
+      if (s === 'learned') learned++;
+      else if (s === 'review') review++;
+      else if (s === 'unknown') unknown++;
+    });
+    const done = learned + review;
+    document.getElementById('stats').textContent = `✅ ${learned} · 🔄 ${review} · ❌ ${unknown} · unset ${total - done - unknown}`;
+    document.getElementById('progress-fill').style.width = (done / total * 100) + '%';
+  }
+  
+  // Build nav tree
+  function buildNav() {
+    const tree = document.getElementById('nav-tree');
+    tree.innerHTML = '';
+    sections.forEach(sec => {
+      const div = document.createElement('div');
+      div.className = 'section';
+      div.innerHTML = `<div class="section-header">${sec.name} <span class="count">${sec.count}</span></div>
+        <div class="section-questions"></div>`;
+      const qs = div.querySelector('.section-questions');
+      const header = div.querySelector('.section-header');
+      header.addEventListener('click', () => qs.classList.toggle('open'));
+      
+      // Only open first section by default
+      if (sec === sections[0]) qs.classList.add('open');
+      
+      questions.forEach(q => {
+        const n = parseInt(q.id);
+        if (n >= sec.start && n <= sec.end) {
+          const item = document.createElement('div');
+          item.className = 'q-item';
+          item.dataset.qid = q.id;
+          item.innerHTML = `<span class="status ${progress[q.id] || 'none'}"></span>
+            <span class="num">${q.id}</span><span>${q.title}</span>`;
+          item.addEventListener('click', () => showQuestion(q.id));
+          qs.appendChild(item);
+        }
+      });
+      
+      tree.appendChild(div);
+    });
+    updateStats();
+  }
+  
+  // Show question
+  function showQuestion(id) {
+    const q = qmap[id];
+    if (!q) return;
+    
+    // Update nav active state
+    document.querySelectorAll('.q-item.active').forEach(el => el.classList.remove('active'));
+    document.querySelector(`.q-item[data-qid="${id}"]`)?.classList.add('active');
+    
+    const main = document.getElementById('main');
+    main.innerHTML = `<div id="question-view">
+      <h2>${q.id}. ${q.title}</h2>
+      <div class="q-meta">
+        <span>📄 ${q.words} words</span>
+        <span>${getSectionFor(id)}</span>
+        <span class="status-badge">${getStatusBadge(id)}</span>
+      </div>
+      <div class="q-content">${renderContent(q.content)}</div>
+      <div class="related-links">${q.related.map(r => {
+        const rq = qmap[r];
+        return rq ? `<a href="#/q/${r}">#${r} ${rq.title}</a>` : '';
+      }).filter(Boolean).join('')}</div>
+    </div>`;
+    
+    renderMath();
+    window.location.hash = `/q/${id}`;
+  }
+  
+  function getSectionFor(id) {
+    const n = parseInt(id);
+    for (const s of sections) {
+      if (n >= s.start && n <= s.end) return s.name;
+    }
+    return '';
+  }
+  
+  function getStatusBadge(id) {
+    const s = progress[id];
+    if (s === 'learned') return '✅ Learned';
+    if (s === 'review') return '🔄 Reviewing';
+    if (s === 'unknown') return '❌ Unknown';
+    return '⚪ Not set';
+  }
+  
+  function renderMath() {
+    if (window.renderMathInElement) {
+      window.renderMathInElement(document.querySelector('.q-content'), {
+        delimiters: [
+          {left: '$$', right: '$$', display: true},
+          {left: '$', right: '$', display: false}
+        ],
+        throwOnError: false
+      });
+    }
+  }
+  
+  let focusMode = false;
+  
+  // Flashcard mode
+  let flashcardQueue = [];
+  let flashcardIndex = 0;
+  function startFlashcards(filter) {
+    flashcardQueue = filter ? questions.filter(filter) : [...questions];
+    flashcardIndex = 0;
+    showFlashcard();
+  }
+  
+  function showFlashcard() {
+    if (flashcardIndex >= flashcardQueue.length) {
+      document.getElementById('main').innerHTML = '<div style="text-align:center;margin-top:100px"><h2>🎉 All done!</h2><p style="color:var(--text2);margin-top:8px">' + flashcardQueue.length + ' questions reviewed</p><button onclick="startFlashcards()" class="primary" style="margin-top:16px">Restart</button></div>';
+      return;
+    }
+    
+    const q = flashcardQueue[flashcardIndex];
+    const main = document.getElementById('main');
+    main.innerHTML = `<div id="flashcard-view">
+      <div style="font-size:14px;color:var(--text2);margin-bottom:8px">${flashcardIndex + 1} / ${flashcardQueue.length}</div>
+      <div class="flashcard" onclick="toggleFlashcardAnswer()">
+        <div class="q-text">${q.id}. ${q.title}</div>
+        <div class="a-text" id="flash-answer">${renderContent(q.content)}</div>
+        <div class="hint" id="flash-hint">👆 Click to show answer</div>
+      </div>
+      <div id="flash-nav" class="flash-progress" style="display:none">
+        <button class="green" onclick="flashcardDone('learned')">✅</button>
+        <button class="orange" onclick="flashcardDone('review')">🔄</button>
+        <button class="red" onclick="flashcardDone('unknown')">❌</button>
+      </div>
+    </div>`;
+    renderMath();
+  }
+  
+  let flashAnswerShown = false;
+  window.toggleFlashcardAnswer = function() {
+    if (!flashAnswerShown) {
+      document.getElementById('flash-answer').classList.add('show');
+      document.getElementById('flash-hint').style.display = 'none';
+      document.getElementById('flash-nav').style.display = 'flex';
+      flashAnswerShown = true;
+      renderMath();
+    }
+  };
+  
+  window.flashcardDone = function(status) {
+    const q = flashcardQueue[flashcardIndex];
+    progress[q.id] = status;
+    saveProgress();
+    updateStats();
+    // Update nav
+    const item = document.querySelector(`.q-item[data-qid="${q.id}"] .status`);
+    if (item) item.className = 'status ' + status;
+    flashAnswerShown = false;
+    flashcardIndex++;
+    showFlashcard();
+  };
+  
+  // Random mode
+  function randomQuestion() {
+    const unset = questions.filter(q => !progress[q.id]);
+    const pool = unset.length > 0 ? unset : questions;
+    const q = pool[Math.floor(Math.random() * pool.length)];
+    showQuestion(q.id);
+  }
+  
+  // Exam mode
+  let examState = null;
+  function startExam() {
+    const count = Math.min(5, questions.length);
+    const shuffled = [...questions].sort(() => Math.random() - 0.5).slice(0, count);
+    examState = { questions: shuffled, index: 0, answers: [], timeLeft: 10 * 60 };
+    showExamQuestion();
+    examState.timer = setInterval(() => {
+      examState.timeLeft--;
+      document.getElementById('exam-timer').textContent = formatTime(examState.timeLeft);
+      if (examState.timeLeft <= 0) finishExam();
+    }, 1000);
+  }
+  
+  function formatTime(s) {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+  }
+  
+  function showExamQuestion() {
+    if (!examState || examState.index >= examState.questions.length) {
+      finishExam();
+      return;
+    }
+    const q = examState.questions[examState.index];
+    const main = document.getElementById('main');
+    main.innerHTML = `<div id="exam-view">
+      <div class="exam-header">
+        <span>${examState.index + 1} / ${examState.questions.length}</span>
+        <div class="exam-timer" id="exam-timer">${formatTime(examState.timeLeft)}</div>
+      </div>
+      <div class="exam-question">
+        <div class="num">Question #${q.id}</div>
+        <div class="q">${q.title}</div>
+        <div class="a" id="exam-answer">${renderContent(q.content)}</div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button onclick="revealExamAnswer()">👁 Show answer</button>
+        <button onclick="nextExam('learned')" class="primary">✅ Know it</button>
+        <button onclick="nextExam('unknown')">❌ Don't know</button>
+      </div>
+    </div>`;
+  }
+  
+  window.revealExamAnswer = function() {
+    document.getElementById('exam-answer').style.display = 'block';
+    renderMath();
+  };
+  
+  window.nextExam = function(status) {
+    const q = examState.questions[examState.index];
+    progress[q.id] = status;
+    saveProgress();
+    updateStats();
+    examState.index++;
+    showExamQuestion();
+  };
+  
+  function finishExam() {
+    if (examState && examState.timer) clearInterval(examState.timer);
+    const main = document.getElementById('main');
+    main.innerHTML = `<div class="exam-results">
+      <h2>📝 Exam complete!</h2>
+      <p style="color:var(--text2)">Review your marked questions below.</p>
+      <button onclick="startExam()" class="primary" style="margin-top:16px">Take another exam</button>
+    </div>`;
+    examState = null;
+  }
+  
+  // Search
+  function performSearch(query) {
+    query = query.toLowerCase();
+    const items = document.querySelectorAll('.q-item');
+    items.forEach(item => {
+      const q = qmap[item.dataset.qid];
+      const match = !query || q.title.toLowerCase().includes(query) || q.content.toLowerCase().includes(query);
+      item.style.display = match ? 'flex' : 'none';
+    });
+    // Hide empty sections
+    document.querySelectorAll('.section').forEach(sec => {
+      const visible = sec.querySelectorAll('.q-item[style*="display: flex"], .q-item:not([style])');
+      sec.querySelector('.section-questions').classList.toggle('open', visible.length > 0);
+    });
+  }
+  
+  // Router
+  function handleRoute() {
+    const hash = window.location.hash.slice(1) || '/';
+    if (hash.startsWith('/q/')) {
+      showQuestion(hash.slice(3));
+    } else if (hash === '/random') {
+      randomQuestion();
+    } else if (hash === '/flashcard') {
+      const main = document.getElementById('main');
+      main.innerHTML = '<div style="text-align:center;margin-top:60px"><h2>🎴 Flashcards</h2><p style="color:var(--text2);margin:8px 0 20px">Review all questions or only unlearned</p><button onclick="startFlashcards()" class="primary" style="margin:4px">All questions</button> <button onclick="startFlashcards(q => !progress[q.id])" style="margin:4px">Unlearned only</button></div>';
+    } else if (hash === '/exam') {
+      startExam();
+    } else {
+      // Home - show welcome
+      const main = document.getElementById('main');
+      main.innerHTML = `<div style="max-width:600px;margin:60px auto;text-align:center">
+        <h1 style="font-size:28px;margin-bottom:12px">📘 Deep Learning Exam Prep</h1>
+        <p style="color:var(--text2);margin-bottom:24px">${questions.length} questions · ${sections.length} topics</p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+          <button class="primary" onclick="window.location.hash='/flashcard'">🎴 Flashcards</button>
+          <button onclick="window.location.hash='/random'">🎲 Random</button>
+          <button onclick="window.location.hash='/exam'">📝 Exam mode</button>
+        </div>
+        <div style="margin-top:40px;text-align:left">
+          <p style="color:var(--text2);font-size:13px">Navigate from the sidebar or search above.</p>
+        </div>
+      </div>`;
+    }
+  }
+  
+  // Focus toggle
+  document.getElementById('focus-btn').addEventListener('click', () => {
+    focusMode = !focusMode;
+    document.body.classList.toggle('focus', focusMode);
+    document.getElementById('focus-btn').textContent = focusMode ? '👁 Unfocus' : '👁 Focus';
+  });
+  
+  // Reset progress
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    if (confirm('Reset all progress?')) {
+      progress = {};
+      saveProgress();
+      // Reset all status indicators
+      document.querySelectorAll('.q-item .status').forEach(el => el.className = 'status none');
+      updateStats();
+    }
+  });
+  
+  // Toolbar buttons
+  document.querySelectorAll('#toolbar button[data-mode]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      window.location.hash = '/' + btn.dataset.mode;
+    });
+  });
+  
+  // Search
+  document.getElementById('search').addEventListener('input', e => performSearch(e.target.value));
+  
+  // Hash change
+  window.addEventListener('hashchange', handleRoute);
+  
+  // Init
+  buildNav();
+  handleRoute();
+  
+  // Re-render math after flashcard answers
+  const origRender = renderMath;
+  window.renderMath = function() {
+    if (window.renderMathInElement) {
+      document.querySelectorAll('.q-content, .a-text').forEach(el => {
+        try {
+          window.renderMathInElement(el, {
+            delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '$', right: '$', display: false}
+            ],
+            throwOnError: false
+          });
+        } catch(e) {}
+      });
+    }
+  };
+}).catch(e => {
+  document.getElementById('loading').innerHTML = '❌ Error loading data: ' + e.message;
+});
+</script>
+</body>
+</html>
