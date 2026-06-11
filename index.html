@@ -402,10 +402,19 @@ fetch('data.json').then(r=>r.json()).then(data => {
     flashcardIndex = 0;
     showFlashcard();
   }
+  window.startFlashcards = function(mode) {
+    if (mode === 'unset') {
+      flashcardQueue = questions.filter(q => !progress[q.id]);
+    } else {
+      flashcardQueue = [...questions];
+    }
+    flashcardIndex = 0;
+    showFlashcard();
+  };
   
   function showFlashcard() {
     if (flashcardIndex >= flashcardQueue.length) {
-      document.getElementById('main').innerHTML = '<div style="text-align:center;margin-top:100px"><h2>🎉 All done!</h2><p style="color:var(--text2);margin-top:8px">' + flashcardQueue.length + ' questions reviewed</p><button onclick="startFlashcards()" class="primary" style="margin-top:16px">Restart</button></div>';
+      document.getElementById('main').innerHTML = '<div style="text-align:center;margin-top:100px"><h2>🎉 All done!</h2><p style="color:var(--text2);margin-top:8px">' + flashcardQueue.length + ' questions reviewed</p><button onclick="window.startFlashcards()" class="primary" style="margin-top:16px">Restart</button></div>';
       return;
     }
     
@@ -462,6 +471,7 @@ fetch('data.json').then(r=>r.json()).then(data => {
   // Exam mode
   let examState = null;
   function startExam() {
+    if (examState && examState.timer) clearInterval(examState.timer);
     const count = Math.min(5, questions.length);
     const shuffled = [...questions].sort(() => Math.random() - 0.5).slice(0, count);
     examState = { questions: shuffled, index: 0, answers: [], timeLeft: 10 * 60 };
@@ -472,6 +482,7 @@ fetch('data.json').then(r=>r.json()).then(data => {
       if (examState.timeLeft <= 0) finishExam();
     }, 1000);
   }
+  window.startExam = startExam;
   
   function formatTime(s) {
     const m = Math.floor(s / 60);
@@ -524,7 +535,7 @@ fetch('data.json').then(r=>r.json()).then(data => {
     main.innerHTML = `<div class="exam-results">
       <h2>📝 Exam complete!</h2>
       <p style="color:var(--text2)">Review your marked questions below.</p>
-      <button onclick="startExam()" class="primary" style="margin-top:16px">Take another exam</button>
+      <button onclick="window.startExam()" class="primary" style="margin-top:16px">Take another exam</button>
     </div>`;
     examState = null;
   }
@@ -554,7 +565,7 @@ fetch('data.json').then(r=>r.json()).then(data => {
       randomQuestion();
     } else if (hash === '/flashcard') {
       const main = document.getElementById('main');
-      main.innerHTML = '<div style="text-align:center;margin-top:60px"><h2>🎴 Flashcards</h2><p style="color:var(--text2);margin:8px 0 20px">Review all questions or only unlearned</p><button onclick="startFlashcards()" class="primary" style="margin:4px">All questions</button> <button onclick="startFlashcards(q => !progress[q.id])" style="margin:4px">Unlearned only</button></div>';
+      main.innerHTML = '<div style="text-align:center;margin-top:60px"><h2>🎴 Flashcards</h2><p style="color:var(--text2);margin:8px 0 20px">Review all questions or only unlearned</p><button onclick="window.startFlashcards()" class="primary" style="margin:4px">All questions</button> <button onclick="window.startFlashcards(\'unset\')" style="margin:4px">Unlearned only</button></div>';
     } else if (hash === '/exam') {
       startExam();
     } else {
